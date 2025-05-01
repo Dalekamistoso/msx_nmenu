@@ -41,23 +41,24 @@ EMUEXT = -ext debugdevice
 EMUEXT1 = $(EMUEXT) -ext Mitsubishi_ML-30DC_ML-30FD
 EMUEXT2 = $(EMUEXT) -ext msxdos2
 EMUEXT2P = $(EMUEXT) -ext msxdos2
-EMUSCRIPTS = -script ./emulation/ocm_ioports.tcl -script ./emulation/boot.tcl
+EMUSCRIPTS = -script $(ROOTDIR)/emulation/boot.tcl
 
 
 DEFINES := -D_DOSLIB_
 #DEBUG := -D_DEBUG_
-#FULLOPT :=  --max-allocs-per-node 200000
+FULLOPT :=  --max-allocs-per-node 200000
 LDFLAGS = -rc
 OPFLAGS = --std-sdcc2x --less-pedantic --opt-code-size -pragma-define:CRT_ENABLE_STDIO=0
 WRFLAGS = --disable-warning 196 --disable-warning 84
 CCFLAGS = --code-loc 0x0180 --data-loc 0 -mz80 --no-std-crt0 --out-fmt-ihx $(OPFLAGS) $(WRFLAGS) $(DEFINES) $(DEBUG)
 
 
-LIBS = dos.lib utils.lib
+LIBS = dos.lib utils.lib msx2ansi.lib
 REL_LIBS = 	$(addprefix $(LIBDIR)/, $(LIBS)) \
 			$(addprefix $(OBJDIR)/, \
 				crt0msx_msxdos_advanced.rel \
 				heap.rel \
+				nmenu.rel \
 			)
 
 PROGRAM = nmenu
@@ -71,7 +72,7 @@ contrib:
 	@$(MAKE) -C contrib all SDCC_VER=$(SDCC_VER) DEFINES=
 
 $(LIBDIR)/dos.lib:
-	@$(MAKE) -C $(EXTERNALS)/sdcc_msxdos all SDCC_VER=$(SDCC_VER) DEFINES=-DDISABLE_CONIO
+	@$(MAKE) -C $(EXTERNALS)/sdcc_msxdos all SDCC_VER=$(SDCC_VER) DEFINES=
 	@cp $(EXTERNALS)/sdcc_msxdos/lib/dos.lib $@
 	@cp $(EXTERNALS)/sdcc_msxdos/include/dos.h $(INCDIR)
 #	@sdar -d $@ dos_cputs.c.rel dos_kbhit.c.rel
@@ -151,7 +152,6 @@ cleanobj:
 cleanlibs:
 	@echo "$(COL_ORANGE)#### Cleaning libs$(COL_RESET)"
 	@rm -f $(addprefix $(LIBDIR)/, $(LIBS))
-	@$(MAKE) -C $(EXTERNALS)/sdcc_msxconio clean
 	@$(MAKE) -C $(EXTERNALS)/sdcc_msxdos clean
 
 

@@ -1,0 +1,10 @@
+About Contrib
+=============
+
+This directory contains third-party software that is distributed together
+with this package. These packages are not part of the project: they are
+maintained and licensed separately. Please read the README.<package> file
+and the documentation files of the contributed packages for details.
+
+We would like to thank the contributors for the software they created and
+for allowing us to distribute it.
