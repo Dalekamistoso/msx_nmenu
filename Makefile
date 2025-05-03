@@ -46,18 +46,19 @@ EMUSCRIPTS = -script $(ROOTDIR)/emulation/boot.tcl
 
 DEFINES := -D_DOSLIB_
 #DEBUG := -D_DEBUG_
-FULLOPT :=  --max-allocs-per-node 200000
+#FULLOPT :=  --max-allocs-per-node 200000
 LDFLAGS = -rc
 OPFLAGS = --std-sdcc2x --less-pedantic --opt-code-size -pragma-define:CRT_ENABLE_STDIO=0
 WRFLAGS = --disable-warning 196 --disable-warning 84
 CCFLAGS = --code-loc 0x0180 --data-loc 0 -mz80 --no-std-crt0 --out-fmt-ihx $(OPFLAGS) $(WRFLAGS) $(DEFINES) $(DEBUG)
 
 
-LIBS = dos.lib utils.lib msx2ansi.lib
+LIBS = dos.lib utils.lib vdp.lib msx2ansi.lib
 REL_LIBS = 	$(addprefix $(LIBDIR)/, $(LIBS)) \
 			$(addprefix $(OBJDIR)/, \
 				crt0msx_msxdos_advanced.rel \
 				heap.rel \
+				ini_parse.rel \
 				nmenu.rel \
 			)
 
@@ -81,7 +82,11 @@ $(LIBDIR)/utils.lib: $(patsubst $(SRCLIB)/%, $(OBJDIR)/%.rel, $(wildcard $(SRCLI
 	@echo "$(COL_WHITE)######## Creating $@$(COL_RESET)"
 	@$(LIB_GUARD)
 	@$(AR) $(LDFLAGS) $@ $^ ;
-	@sdar -d $@ utils_exit.c.rel
+
+$(LIBDIR)/vdp.lib: $(patsubst $(SRCLIB)/%, $(OBJDIR)/%.rel, $(wildcard $(SRCLIB)/vdp_*))
+	@echo "$(COL_WHITE)######## Creating $@$(COL_RESET)"
+	@$(LIB_GUARD)
+	@$(AR) $(LDFLAGS) $@ $^ ;
 
 $(OBJDIR)/%.rel: $(SRCDIR)/%.s
 	@echo "$(COL_BLUE)#### ASM $@$(COL_RESET)"
@@ -147,7 +152,7 @@ cleanobj:
 	@echo "$(COL_ORANGE)#### Cleaning obj$(COL_RESET)"
 	@rm -f $(DSKDIR)/$(PROGRAM).com
 	@rm -f *.com *.asm *.lst *.sym *.bin *.ihx *.lk *.map *.noi *.rel
-	@rm -f $(OBJDIR)/*
+	@rm -rf $(OBJDIR)
 
 cleanlibs:
 	@echo "$(COL_ORANGE)#### Cleaning libs$(COL_RESET)"

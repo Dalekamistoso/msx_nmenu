@@ -18,6 +18,8 @@ uint8_t getRomByte(uint16_t address) __sdcccall(1);
 
 void dzx0_standard(void *src, void *dst) __sdcccall(1);
 
+int csprintf(char *str, const char *format, ...);
+
 
 #define MODE_ANK		0
 #define MODE_KANJI0		1

@@ -1,5 +1,5 @@
 .vscode/*.log
-*.lib
+libs/*.lib
 obj
 assets
 bin/**/
