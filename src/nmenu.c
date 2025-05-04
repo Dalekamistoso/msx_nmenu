@@ -31,6 +31,7 @@ const char *SECTION_BACKGROUND = "Background";
 const char *SECTION_SETTINGS   = "Settings";
 const char *SECTION_LINES      = "Lines";
 
+const char initScreen[] = ANSI_COLOR(%s) ANSI_CLRSCR ANSI_CURSORHOME;
 const char entryPattern[] = ANSI_RESET ANSI_CURSORPOS(%u,%u)ANSI_COLOR(%s)ANSI_COLOR(%s)"%s";
 
 MENU_t *menu;
@@ -164,18 +165,20 @@ void entry_print(MENU_ENTRY_t *entry, bool selected)
 void menu_show()
 {
 	waitVDPready();
+	ASM_EI; ASM_HALT;
 	disableVDP();
 
 	// Set backgrounds
-	AnsiPrint(ANSI_COLOR(menu->menuBgColor) ANSI_CLRSCR);
-	if (menu->bgFileSC7[0] && fileexists(menu->bgFileSC7)) {
+	csprintf(buff, initScreen, menu->bgColor);
+	AnsiPrint(buff);
+	if (menu->bgFileSC7[0] && dos2_fileexists(menu->bgFileSC7)) {
 		// Load background SC7 file
 		bloads(menu->bgFileSC7);
 	}
-	if (menu->bgFileANSI[0] && fileexists(menu->bgFileANSI)) {
+	if (menu->bgFileANSI[0] && dos2_fileexists(menu->bgFileANSI)) {
 		// Load background ANSI file
 		AnsiPrint(ANSI_RESET);
-		uint16_t size = filesize(menu->bgFileANSI);
+		uint16_t size = dos2_filesize(menu->bgFileANSI);
 		char *ansiBuffer = malloc(size + 1);
 		loadFile(menu->bgFileANSI, ansiBuffer, size);
 		AnsiPrint(ansiBuffer);
@@ -193,29 +196,39 @@ void menu_show()
 	}
 
 	waitVDPready();
+	ASM_EI; ASM_HALT;
 	enableVDP();
 }
 
 bool menu_init(char *iniFilename)
 {
+	// Check if INI file exists
+	strcpy(buff, iniFilename);
+	if (!dos2_fileexists(buff)) {
+		return false;
+	}
+
 	// Initialize heap to start value
 	heap_top = heapBackup;
-
-	// Initialize generic string buffer
-	buff = malloc(200);
 
 	// Allocate memory for menu structure
 	menu = (MENU_t*)malloc(sizeof(MENU_t));
 	memset(menu, 0, sizeof(MENU_t));
 	menu->entries = (MENU_ENTRY_t*)malloc(sizeof(MENU_ENTRY_t) * MAX_MENU_ENTRIES);
 	memset(menu->entries, 0, sizeof(MENU_ENTRY_t) * MAX_MENU_ENTRIES);
-	if (!menu || !menu->entries) {
-		return false;
+
+	// Set working directory
+	char *file = strrchr(buff, '\\');
+	if (file) {
+		*file++ = '\0';
+		dos2_setCurrentDirectory(buff);
+	} else {
+		file = buff;
 	}
 
 	// Initialize menu data from INI file
-	index = 0;
-	ini_parse(iniFilename, handler);
+	index = last_posx = last_posy = 0;
+	ini_parse(file, handler);
 
 	// Start menu display
 	menu_show();
@@ -338,10 +351,22 @@ int main(char **argv, int argc) __sdcccall(0)
 	// A way to avoid using low memory when using BIOS calls from DOS
 	if (heap_top < (void*)0x8000)
 		heap_top = (void*)0x8000;
-	heapBackup = heap_top;
 
 	//Platform system checks
 	checkPlatformSystem();
+
+	// Initialize generic string buffer
+	buff = malloc(200);
+	heapBackup = heap_top;
+
+	// Initialize screen
+	strcpy(buff, argc ? argv[0] : "nmenu.ini");
+	// Check if INI file exists
+	if (!dos2_fileexists(buff)) {
+		restoreScreen();
+		cputs("INI file not found!");
+		return 1;
+	}
 
 	// Initialize ANSI screen
 	AnsiInit();
@@ -349,57 +374,13 @@ int main(char **argv, int argc) __sdcccall(0)
 	AnsiPrint(ANSI_CURSOROFF);
 
 	// Initialize menu structure
-	menu_init("nmenu.ini");
+	menu_init(buff);
 
-/*
-AnsiPrint(
-	ANSI_FRCOL(7)ANSI_CURSOROFF
-	ANSI_BGCOL(0)" ABC "
-	ANSI_BGCOL(1)" ABC "
-	ANSI_BGCOL(2)" ABC "
-	ANSI_BGCOL(3)" ABC "
-	ANSI_BGCOL(4)" ABC "
-	ANSI_BGCOL(5)" ABC "
-	ANSI_BGCOL(6)" ABC "
-	ANSI_BGCOL(7)" ABC "
-	"\n\r"ANSI_BGCOL(0)
-	ANSI_FRCOL(0)" ABC "
-	ANSI_FRCOL(1)" ABC "
-	ANSI_FRCOL(2)" ABC "
-	ANSI_FRCOL(3)" ABC "
-	ANSI_FRCOL(4)" ABC "
-	ANSI_FRCOL(5)" ABC "
-	ANSI_FRCOL(6)" ABC "
-	ANSI_FRCOL(7)" ABC "
-	"\n\r"ANSI_FRCOL(7)
-	ANSI_BGCOL1(0)" ABC "
-	ANSI_BGCOL1(1)" ABC "
-	ANSI_BGCOL1(2)" ABC "
-	ANSI_BGCOL1(3)" ABC "
-	ANSI_BGCOL1(4)" ABC "
-	ANSI_BGCOL1(5)" ABC "
-	ANSI_BGCOL1(6)" ABC "
-	ANSI_BGCOL1(7)" ABC "
-	"\n\r"ANSI_BGCOL(0)
-	ANSI_FRCOL1(0)" ABC "
-	ANSI_FRCOL1(1)" ABC "
-	ANSI_FRCOL1(2)" ABC "
-	ANSI_FRCOL1(3)" ABC "
-	ANSI_FRCOL1(4)" ABC "
-	ANSI_FRCOL1(5)" ABC "
-	ANSI_FRCOL1(6)" ABC "
-	ANSI_FRCOL1(7)" ABC "
-	"\n\r"
-);
-AnsiPrint(ANSI_INVERSE);
-AnsiPrint("Mundo\n\n"ANSI_RESET);
-*/
 	menu_loop();
 
 	AnsiEndBuffer();
 	AnsiFinish();
 
 	restoreScreen();
-
 	return 0;
 }

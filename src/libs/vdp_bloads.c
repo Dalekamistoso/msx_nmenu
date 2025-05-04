@@ -14,7 +14,6 @@ bool bloads(const char* filename)
 	FILEH fh;
 	BLOAD_HEADER header;
 
-
 	// Open file
 	if ((fh = dos2_fopen(filename, O_RDONLY)) >= ERR_FIRST) {
 		return false;
@@ -36,7 +35,9 @@ bool bloads(const char* filename)
 		if (sizeToRead > size) {
 			sizeToRead = size;
 		}
-		dos2_fread(buffer, sizeToRead, fh);
+		if ((dos2_fread(buffer, sizeToRead, fh) >> 8) == 0xff) {
+			goto end_error;
+		}
 		bios_copyToVRAM(buffer, address, sizeToRead);
 		address += sizeToRead;
 		size -= sizeToRead;
@@ -46,7 +47,6 @@ bool bloads(const char* filename)
 end_error:
 	free(LOAD_CHUNK_SIZE);
 end_function:
-	free(sizeof(BLOAD_HEADER));
 	dos2_fclose(fh);
 	return ret;
 }

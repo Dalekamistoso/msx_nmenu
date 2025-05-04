@@ -44,14 +44,14 @@ typedef struct {
 
 // General ASCII codes
 
-#define ASCII_BELL				"\x07"		// Terminal bell
-#define ASCII_BS				"\x08"		// Backspace
-#define ASCII_HT				"\x09"		// Horizontal TAB
-#define ASCII_LF				"\x0a"		// Linefeed (newline)
-#define ASCII_FF				"\x0c"		// Formfeed (also: New page)
-#define ASCII_CR				"\x0d"		// Carriage return
-#define ASCII_ESC				"\x1b"		// ESCape character
-#define ASCII_DEL				"\x7f"		// Delete character
+#define ASCII_BELL				"\x07"				// Terminal bell
+#define ASCII_BS				"\x08"				// Backspace
+#define ASCII_HT				"\x09"				// Horizontal TAB
+#define ASCII_LF				"\x0a"				// Linefeed (newline)
+#define ASCII_FF				"\x0c"				// Formfeed (also: New page)
+#define ASCII_CR				"\x0d"				// Carriage return
+#define ASCII_ESC				"\x1b"				// ESCape character
+#define ASCII_DEL				"\x7f"				// Delete character
 
 
 // VT52 escape codes
