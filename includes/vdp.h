@@ -23,8 +23,8 @@ typedef struct {
 void setRegVDP(char reg, char value) __sdcccall(1);
 void setRegVDP8(char reg, char value) __sdcccall(1);
 
-//void setVDP_Read(uint32_t vram) __sdcccall(1);
-//void setVDP_Write(uint32_t vram) __sdcccall(1);
+void setVDP_Read(uint32_t vram) __sdcccall(1);
+void setVDP_Write(uint32_t vram) __sdcccall(1);
 
 //void bios_fillVRAM(uint16_t vram, uint16_t size, uint8_t value) __sdcccall(0);
 void bios_copyToVRAM(void *address, uint16_t vram, uint16_t size) __sdcccall(0);
@@ -32,8 +32,8 @@ void bios_copyToVRAM(void *address, uint16_t vram, uint16_t size) __sdcccall(0);
 void msx2_copyToVRAM(void *address, uint16_t vram, uint16_t size) __sdcccall(0);
 //void bios_copyFromVRAM(uint16_t vram, void *address, uint16_t size) __sdcccall(0);
 
-//void enableVDP();
-//void disableVDP();
+void enableVDP();
+void disableVDP();
 
 //void enableSPR();
 //void disableSPR();
@@ -110,8 +110,8 @@ void setVPage(uint8_t page) __sdcccall(1);
 
 //void clearSC5();
 //void clearSC5lines(uint16_t startline, uint16_t numLines) __sdcccall(1);
-//void clearSC7();
-//void clearSC7lines(uint16_t startline, uint16_t numLines) __sdcccall(1);
+void clearSC7();
+void clearSC7lines(uint16_t startline, uint16_t numLines) __sdcccall(1);
 
 void bitBlt(uint16_t sx, uint16_t sy, uint16_t dx, uint16_t dy, uint16_t nx, uint16_t ny, uint8_t col, uint8_t arg, uint8_t cmd) __sdcccall(0);
 void fastVCopy(char *bitbltData) __sdcccall(1);

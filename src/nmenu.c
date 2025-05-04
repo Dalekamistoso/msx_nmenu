@@ -31,8 +31,15 @@ const char *SECTION_BACKGROUND = "Background";
 const char *SECTION_SETTINGS   = "Settings";
 const char *SECTION_LINES      = "Lines";
 
+const char entryPattern[] = ANSI_RESET ANSI_CURSORPOS(%u,%u)ANSI_COLOR(%s)ANSI_COLOR(%s)"%s";
+
 MENU_t *menu;
+uint8_t selected = 0;
+uint8_t lastSel = 0xff;
+
 char *buff;
+void *heapBackup;
+
 
 // ========================================================
 // Function declarations
@@ -76,6 +83,7 @@ static void checkPlatformSystem()
 // ========================================================
 uint8_t last_posx = 0;
 uint8_t last_posy = 0;
+uint8_t index = 0;
 
 static int handler(const char* section, const char* name, const char* value)
 {
@@ -84,7 +92,7 @@ static int handler(const char* section, const char* name, const char* value)
 	#define MATCH(s, n) MATCH_SECTION(s) && MATCH_NAME(n)
 
 	if (MATCH(SECTION_BACKGROUND, "bg.color")) {
-		menu->bgColor = atoi(value);
+		strncpy(menu->bgColor, value, MAX_COLOR-1);
 	} else
 	if (MATCH(SECTION_BACKGROUND, "bg.file.ansi")) {
 		strcpy(menu->bgFileANSI, value);
@@ -93,43 +101,41 @@ static int handler(const char* section, const char* name, const char* value)
 		strcpy(menu->bgFileSC7, value);
 	} else
 	if (MATCH(SECTION_SETTINGS, "menu.bg.color")) {
-		menu->menuBgColor = atoi(value);
+		strncpy(menu->menuBgColor, value, MAX_COLOR-1);
 	} else
-	if (MATCH(SECTION_SETTINGS, "menu.fg.color")) {
-		menu->menuFgColor = atoi(value);
+	if (MATCH(SECTION_SETTINGS, "menu.fr.color")) {
+		strncpy(menu->menuFgColor, value, MAX_COLOR-1);
 	} else
 	if (MATCH(SECTION_SETTINGS, "selected.bg.color")) {
-		menu->selectedBgColor = atoi(value);
+		strncpy(menu->selectedBgColor, value, MAX_COLOR-1);
 	} else
-	if (MATCH(SECTION_SETTINGS, "selected.fg.color")) {
-		menu->selectedFgColor = atoi(value);
+	if (MATCH(SECTION_SETTINGS, "selected.fr.color")) {
+		strncpy(menu->selectedFgColor, value, MAX_COLOR-1);
 	} else
 	if (MATCH_SECTION(SECTION_LINES)) {
-		char *dot = strchr(name, '.');
-		if (dot) {
-			*dot++ = '\0';
-			int index = atoi(dot) - 1;
-			if (index >= 0 && index < MAX_MENU_ENTRIES) {
-				MENU_ENTRY_t *entry = &menu->entries[index];
-				if (!entry->enabled) {
-					entry->enabled = true;
-					entry->posx = last_posx;
-					entry->posy = ++last_posy;
-				}
-				if (MATCH_NAME("posx")) {
-					entry->enabled = true;
-					last_posx = entry->posx = atoi(value);
-				} else
-				if (MATCH_NAME("posy")) {
-					entry->enabled = true;
-					last_posy = entry->posy = atoi(value);
-				} else
-				if (MATCH_NAME("text")) {
-					strcpy(entry->text, value);
-				} else
-				if (MATCH_NAME("exec")) {
-					strcpy(entry->exec, value);
-				}
+		if (index >= 0 && index < MAX_MENU_ENTRIES) {
+			MENU_ENTRY_t *entry = &menu->entries[index];
+			if (!entry->enabled) {
+				entry->posx = last_posx;
+				entry->posy = ++last_posy;
+			}
+			if (MATCH_NAME("posx")) {
+				entry->enabled = true;
+				last_posx = entry->posx = atoi(value);
+			} else
+			if (MATCH_NAME("posy")) {
+				entry->enabled = true;
+				last_posy = entry->posy = atoi(value);
+			} else
+			if (MATCH_NAME("text")) {
+				entry->enabled = true;
+				strcpy(entry->text, value);
+			} else
+			if (MATCH_NAME("cmd")) {
+				strcpy(entry->exec, value);
+			} else
+			if (MATCH_NAME("next")) {
+				index++;
 			}
 		}
 	}
@@ -140,10 +146,62 @@ cputs(buff);
 	return 1;
 }
 
+
 // ========================================================
-bool menu_init()
+void entry_print(MENU_ENTRY_t *entry, bool selected)
 {
-	// Initialize string buffer
+	// Print entry
+	if (selected) {
+		csprintf(buff, entryPattern,
+			entry->posy, entry->posx, menu->selectedBgColor, menu->selectedFgColor, entry->text);
+	} else {
+		csprintf(buff, entryPattern,
+			entry->posy, entry->posx, menu->menuBgColor, menu->menuFgColor, entry->text);
+	}
+	AnsiPrint(buff);
+}
+
+void menu_show()
+{
+	waitVDPready();
+	disableVDP();
+
+	// Set backgrounds
+	AnsiPrint(ANSI_COLOR(menu->menuBgColor) ANSI_CLRSCR);
+	if (menu->bgFileSC7[0] && fileexists(menu->bgFileSC7)) {
+		// Load background SC7 file
+		bloads(menu->bgFileSC7);
+	}
+	if (menu->bgFileANSI[0] && fileexists(menu->bgFileANSI)) {
+		// Load background ANSI file
+		AnsiPrint(ANSI_RESET);
+		uint16_t size = filesize(menu->bgFileANSI);
+		char *ansiBuffer = malloc(size + 1);
+		loadFile(menu->bgFileANSI, ansiBuffer, size);
+		AnsiPrint(ansiBuffer);
+		free(size);
+	}
+
+	// Print full menu entries
+	MENU_ENTRY_t *entry = menu->entries;
+
+	for (uint8_t i = 0; i < MAX_MENU_ENTRIES; i++) {
+		if (entry->text[0]) {
+			entry_print(entry, false);
+		}
+		entry++;
+	}
+
+	waitVDPready();
+	enableVDP();
+}
+
+bool menu_init(char *iniFilename)
+{
+	// Initialize heap to start value
+	heap_top = heapBackup;
+
+	// Initialize generic string buffer
 	buff = malloc(200);
 
 	// Allocate memory for menu structure
@@ -154,62 +212,40 @@ bool menu_init()
 	if (!menu || !menu->entries) {
 		return false;
 	}
+
+	// Initialize menu data from INI file
+	index = 0;
+	ini_parse(iniFilename, handler);
+
+	// Start menu display
+	menu_show();
+
 	return true;
-}
-
-void menu_print()
-{
-	// Print menu entries
-	MENU_ENTRY_t *entry = menu->entries;
-
-	csprintf(buff, ANSI_BGCOL(%u)ANSI_FRCOL(%u), menu->menuBgColor, menu->menuFgColor);
-	AnsiPrint(buff);
-	for (uint8_t i = 0; i < MAX_MENU_ENTRIES; i++) {
-		if (entry->text[0]) {
-			csprintf(buff, ANSI_CURSORPOS(%u,%u)"%s", entry->posy, entry->posx, entry->text);
-			AnsiPrint(buff);
-		}
-		entry++;
-	}
 }
 
 bool menu_loop()
 {
-	// Set backgrounds
-	AnsiPrint(ANSI_BGCOL(menu->menuBgColor) ANSI_CLRSCR);
-	if (menu->bgFileANSI[0]) {
-		// Load background ANSI file
-		AnsiPrint(ANSI_CURSOROFF ANSI_BGCOL(menu->bgColor));
-		AnsiPrint(menu->bgFileANSI);
-	} else if (menu->bgFileSC7[0]) {
-		// Load background SC7 file
-		bloads(menu->bgFileSC7);
-	}
-
-	// Print full menu entries
-	menu_print();
-
 	// Menu loop
 	bool end = false;
-	uint8_t key, selected = 0, lastSel = 0xff;
+	uint8_t key;
 	MENU_ENTRY_t *entry;
+
+	selected = 0;
+	lastSel = 0xff;
 
 	while (!end) {
 		if (selected != lastSel) {
-			// Highlight selected entry
+			// Clear last selected entry
 			if (lastSel < MAX_MENU_ENTRIES) {
-				entry = &menu->entries[lastSel];
-				csprintf(buff, ANSI_CURSORPOS(%u,%u)ANSI_BGCOL(%u)ANSI_FRCOL(%u)"%s",
-					entry->posy, entry->posx, menu->menuBgColor, menu->menuFgColor, entry->text);
-				AnsiPrint(buff);
+				entry_print(&menu->entries[lastSel], false);
 			}
+			// Highlight selected entry
 			entry = &menu->entries[selected];
-			csprintf(buff, ANSI_CURSORPOS(%u,%u)ANSI_BGCOL(%u)ANSI_FRCOL(%u)"%s",
-				entry->posy, entry->posx, menu->selectedBgColor, menu->selectedFgColor, entry->text);
-			AnsiPrint(buff);
 			lastSel = selected;
+			entry_print(entry, true);
 		}
-		key = getchar();
+		// Wait for a pressed key
+ 		key = getchar();
 		switch (key) {
 			case KEY_ESC:
 				end = true;
@@ -302,19 +338,18 @@ int main(char **argv, int argc) __sdcccall(0)
 	// A way to avoid using low memory when using BIOS calls from DOS
 	if (heap_top < (void*)0x8000)
 		heap_top = (void*)0x8000;
+	heapBackup = heap_top;
 
 	//Platform system checks
 	checkPlatformSystem();
 
-	// Initialize menu structure
-	menu_init();
-
-	// Initialize menu from INI file
-	ini_parse("nmenu.ini", handler);
-
+	// Initialize ANSI screen
 	AnsiInit();
 	AnsiStartBuffer();
 	AnsiPrint(ANSI_CURSOROFF);
+
+	// Initialize menu structure
+	menu_init("nmenu.ini");
 
 /*
 AnsiPrint(

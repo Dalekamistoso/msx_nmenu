@@ -34,12 +34,7 @@ int ini_parse(const char* filename, ini_handler handler);
 
 /* Same as ini_parse(), but takes a file handle instead of filename. This doesn't
    close the file when it's finished -- the caller must do that. */
-int ini_parse_file(FILEH fh, ini_handler handler);
-
-/* Same as ini_parse(), but takes a zero-terminated string with the INI data
-instead of a file. Useful for parsing INI data from a network socket or
-already in memory. */
-int ini_parse_string(const char* string, ini_handler handler);
+int ini_parse_stream(FILEH fh, ini_handler handler);
 
 /* Chars that begin a start-of-line comment. Per Python configparser, allow
    both ; and # comments at the start of a line by default. */

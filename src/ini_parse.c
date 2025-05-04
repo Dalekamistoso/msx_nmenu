@@ -13,11 +13,6 @@
 
 const char* const EMPTY_STRING = "\0";
 
-/* Used by ini_parse_string() to keep track of string parsing state. */
-typedef struct {
-	const char* ptr;
-	size_t num_left;
-} ini_parse_string_ctx;
 
 /* Strip whitespace chars off end of given string, in place. Return s. */
 static char* rstrip(char* s)
@@ -169,12 +164,6 @@ int ini_parse_stream(FILEH fh, ini_handler handler)
 }
 
 /* See documentation in header file. */
-int ini_parse_file(FILEH fh, ini_handler handler)
-{
-	return ini_parse_stream(fh, handler);
-}
-
-/* See documentation in header file. */
 int ini_parse(const char* filename, ini_handler handler)
 {
 	FILEH fh;
@@ -183,7 +172,7 @@ int ini_parse(const char* filename, ini_handler handler)
 	fh = dos2_fopen(filename, O_RDONLY);
 	if (fh >= ERR_FIRST)
 		return -1;
-	error = ini_parse_file(fh, handler);
+	error = ini_parse_stream(fh, handler);
 	dos2_fclose(fh);
 	return error;
 }

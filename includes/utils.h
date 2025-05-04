@@ -20,6 +20,9 @@ void dzx0_standard(void *src, void *dst) __sdcccall(1);
 
 int csprintf(char *str, const char *format, ...);
 
+uint16_t loadFile(char *filename, void *destaddress, uint16_t size);
+uint16_t loadFullFile(char *filename, void *destaddress);
+
 
 #define MODE_ANK		0
 #define MODE_KANJI0		1

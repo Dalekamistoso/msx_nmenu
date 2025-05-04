@@ -13,6 +13,7 @@
 #define MAX_FILE_PATH		64
 #define MAX_MENU_ENTRIES	50
 #define MAX_MENU_TEXT		81
+#define MAX_COLOR			8
 
 typedef struct {
 	bool     enabled;						// Entry enabled
@@ -24,15 +25,15 @@ typedef struct {
 
 typedef struct {
 	// Background
-	uint8_t  bgColor;						// Background color
-	char     bgFileANSI[MAX_FILE_PATH];		// Background ANSI file
-	char     bgFileSC7[MAX_FILE_PATH];		// Background SC7 file
+	char bgColor[MAX_COLOR];				// Background color
+	char bgFileANSI[MAX_FILE_PATH];			// Background ANSI file
+	char bgFileSC7[MAX_FILE_PATH];			// Background SC7 file
 
 	// Menu settings
-	uint8_t  menuBgColor;					// Menu background color
-	uint8_t  menuFgColor;					// Menu foreground color
-	uint8_t  selectedBgColor;				// Selected background color
-	uint8_t  selectedFgColor;				// Selected foreground color
+	char menuBgColor[MAX_COLOR];			// Menu background color
+	char menuFgColor[MAX_COLOR];			// Menu foreground color
+	char selectedBgColor[MAX_COLOR];		// Selected background color
+	char selectedFgColor[MAX_COLOR];		// Selected foreground color
 
 	// Menu entries
 	MENU_ENTRY_t *entries;	// Menu entries
@@ -118,6 +119,7 @@ typedef struct {
 //#define ANSI_STRIKETHROUGH	"\033[9m"			// SGR9: Turn strikethrough text mode on
 
 // Color codes
+#define ANSI_COLOR(c)			"\033["#c"m"		// Set color
 #define ANSI_FRCOL(c)			"\033[3"#c"m"		// Set foreground color
 #define ANSI_BGCOL(c)			"\033[4"#c"m"		// Set background color
 #define ANSI_FRCOL1(c)			"\033[1;3"#c"m"		// Set foreground color

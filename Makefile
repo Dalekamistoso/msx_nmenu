@@ -60,6 +60,7 @@ REL_LIBS = 	$(addprefix $(LIBDIR)/, $(LIBS)) \
 				heap.rel \
 				ini_parse.rel \
 				nmenu.rel \
+				debug.rel \
 			)
 
 PROGRAM = nmenu
