@@ -23,6 +23,8 @@ int csprintf(char *str, const char *format, ...);
 uint16_t loadFile(char *filename, void *destaddress, uint16_t size);
 uint16_t loadFullFile(char *filename, void *destaddress);
 
+void execv(char *execStr);
+
 
 #define MODE_ANK		0
 #define MODE_KANJI0		1

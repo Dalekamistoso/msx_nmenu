@@ -132,8 +132,8 @@ static int handler(const char* section, const char* name, const char* value)
 				entry->enabled = true;
 				strcpy(entry->text, value);
 			} else
-			if (MATCH_NAME("cmd")) {
-				strcpy(entry->exec, value);
+			if (MATCH_NAME("exec")) {
+				strcpy(entry->exec, dos2_strupr(value));
 			} else
 			if (MATCH_NAME("next")) {
 				index++;
@@ -237,6 +237,29 @@ bool menu_init(char *iniFilename)
 	return true;
 }
 
+void launch_exec(MENU_ENTRY_t *entry)
+{
+	// Launch executable
+	if (entry->exec[0]) {
+		// Check if entry is a .INI file
+		char *dot = strrchr(entry->exec, '.');
+		if (dot && !strcmp(dot, ".INI")) {
+			if (dos2_fileexists(entry->exec)) {
+				// Launch INI file
+				menu_init(entry->exec);
+				selected = 0;
+				lastSel = 0xff;
+			}
+		} else {
+			// Restore screen
+			AnsiPrint(ANSI_CURSORON);
+			restoreScreen();
+			// Execute command
+			execv(entry->exec);
+		}
+	}
+}
+
 bool menu_loop()
 {
 	// Menu loop
@@ -259,7 +282,7 @@ bool menu_loop()
 			entry_print(entry, true);
 		}
 		// Wait for a pressed key
- 		key = getchar();
+		key = getchar();
 		switch (key) {
 			case KEY_ESC:
 				end = true;
@@ -289,9 +312,7 @@ bool menu_loop()
 			case KEY_RETURN:
 			case KEY_SELECT:
 			case KEY_SPACE:
-menu_init("\\kk\\nmenu2.ini");
-selected = 0;
-lastSel = 0xff;
+				launch_exec(entry);
 				break;
 		}
 	}
@@ -299,6 +320,8 @@ lastSel = 0xff;
 	return true;
 }
 
+
+// ========================================================
 void restoreOriginalScreenMode() __naked
 {
 	// Restore original screen mode

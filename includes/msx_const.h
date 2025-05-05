@@ -165,6 +165,7 @@ __sfr __at (0x99) IO_VDP2;
 #define NEWKEY		0xfbe5	// (11 bytes) Status of each keyboard matrix row. The status is updated by the KEYINT interrupt routine.
 							//            https://www.msx.org/wiki/Keyboard
 #define KEYBUF		0xfbf0	// (40 bytes) Key code buffer [0xfbf0...0xfc17]
+#define HIMEM		0xfc4a	// (WORD) Address of the end of the available RAM area
 #define JIFFY		0xfc9e	// (WORD) Internal time counter
 #define CSRSW		0xfca9	// (BYTE) Cursor display switch (0:hidden | 1:visible)
 #define CSTYLE		0xfcaa	// (BYTE) Cursor style (0:full cursor | other:halve cursor)
