@@ -107,6 +107,7 @@ void setPalette(char *paletteAddress) __sdcccall(1);
 void setColorPal(uint8_t colIndex, uint16_t grb) __sdcccall(1);	// grb bitfield: 00000GGG.0RRR0BBB
 
 void setVPage(uint8_t page) __sdcccall(1);
+void copyToPage1();
 
 //void clearSC5();
 //void clearSC5lines(uint16_t startline, uint16_t numLines) __sdcccall(1);

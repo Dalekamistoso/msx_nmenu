@@ -151,7 +151,6 @@ cputs(buff);
 // ========================================================
 void entry_print(MENU_ENTRY_t *entry, bool selected)
 {
-	// Print entry
 	if (selected) {
 		csprintf(buff, entryPattern,
 			entry->posy, entry->posx, menu->selectedBgColor, menu->selectedFgColor, entry->text);
@@ -159,14 +158,16 @@ void entry_print(MENU_ENTRY_t *entry, bool selected)
 		csprintf(buff, entryPattern,
 			entry->posy, entry->posx, menu->menuBgColor, menu->menuFgColor, entry->text);
 	}
+	ASM_EI; ASM_HALT;
 	AnsiPrint(buff);
 }
 
 void menu_show()
 {
+	copyToPage1();
 	waitVDPready();
+	setVPage(1);
 	ASM_EI; ASM_HALT;
-	disableVDP();
 
 	// Set backgrounds
 	csprintf(buff, initScreen, menu->bgColor);
@@ -197,7 +198,7 @@ void menu_show()
 
 	waitVDPready();
 	ASM_EI; ASM_HALT;
-	enableVDP();
+	setVPage(0);
 }
 
 bool menu_init(char *iniFilename)
@@ -288,6 +289,9 @@ bool menu_loop()
 			case KEY_RETURN:
 			case KEY_SELECT:
 			case KEY_SPACE:
+menu_init("\\kk\\nmenu2.ini");
+selected = 0;
+lastSel = 0xff;
 				break;
 		}
 	}
