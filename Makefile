@@ -75,6 +75,7 @@ contrib:
 
 $(LIBDIR)/dos.lib:
 	@$(MAKE) -C $(EXTERNALS)/sdcc_msxdos all SDCC_VER=$(SDCC_VER) DEFINES=
+	@$(LIB_GUARD)
 	@cp $(EXTERNALS)/sdcc_msxdos/lib/dos.lib $@
 	@cp $(EXTERNALS)/sdcc_msxdos/include/dos.h $(INCDIR)
 #	@sdar -d $@ dos_cputs.c.rel dos_kbhit.c.rel
