@@ -1,4 +1,4 @@
-# NMENU - A Simple Menu Program for MSX-DOS
+# NMENU - A Simple and Customizable Menu Program for MSX-DOS
 
 ![NMENU Screenshot](assets/screenshot.png)
 
