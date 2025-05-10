@@ -17,7 +17,8 @@
 
 extern uint8_t *heap_top;
 
-extern void *malloc(uint16_t size);
-extern void free(uint16_t size);
+void *malloc(uint16_t size);
+void free(uint16_t size);
+
 
 #endif//__HEAP_MSXDOS_H__

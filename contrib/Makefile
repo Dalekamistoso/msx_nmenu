@@ -26,10 +26,16 @@ LIB_GUARD=@mkdir -p $(LIBDIR)
 MAKE = make -s --no-print-directory
 
 
-all: msx2ansi
+all: lvgm msx2ansi
 
 
 ##################################### msx2ansi
+
+lvgm: $(LIBDIR)/lvgm.lib
+
+$(LIBDIR)/lvgm.lib:
+	@echo "$(COL_YELLOW)######## Creating $@$(COL_RESET)"
+	@$(MAKE) -C lvgm
 
 msx2ansi: $(LIBDIR)/msx2ansi.lib $(INCDIR)/msx2ansi.h
 
@@ -39,6 +45,7 @@ $(INCDIR)/msx2ansi.h:
 
 $(LIBDIR)/msx2ansi.lib: msx2ansi/msx2ansi.h
 	@echo "$(COL_YELLOW)######## Creating $@$(COL_RESET)"
+	@$(LIB_GUARD)
 	@cp msx2ansi/msx2ansi.lib $(LIBDIR)/msx2ansi.lib
 
 clean: clean_msx2ansi

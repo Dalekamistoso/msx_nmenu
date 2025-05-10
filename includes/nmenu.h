@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define VERSIONAPP			"1.0.0"
 
 #define MAX_FILE_PATH		64
 #define MAX_MENU_ENTRIES	50
@@ -30,6 +31,7 @@ typedef struct {
 	char bgFileSC7[MAX_FILE_PATH];			// Background SC7 file
 
 	// Menu settings
+	char musicLVGM[MAX_FILE_PATH];			// Music file LVGM
 	char menuBgColor[MAX_COLOR];			// Menu background color
 	char menuFgColor[MAX_COLOR];			// Menu foreground color
 	char selectedBgColor[MAX_COLOR];		// Selected background color

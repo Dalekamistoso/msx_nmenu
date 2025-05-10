@@ -4,10 +4,11 @@
 
 uint16_t loadFile(char *filename, void *destaddress, uint16_t size)
 { 
+	FILEH fh;
 	RETW len = 0;
-	if (fopen(filename)) {
-		len = fread(destaddress, size);
-		fclose();
+	if ((fh = dos2_fopen(filename, O_RDONLY)) < ERR_FIRST) {
+		len = dos2_fread(destaddress, size, fh);
+		dos2_fclose(fh);
 	}
 	return len;
 }

@@ -118,4 +118,4 @@ void bitBlt(uint16_t sx, uint16_t sy, uint16_t dx, uint16_t dy, uint16_t nx, uin
 void fastVCopy(char *bitbltData) __sdcccall(1);
 void waitVDPready();
 
-bool bloads(const char* filename);
+void *bloads(const char* filename);

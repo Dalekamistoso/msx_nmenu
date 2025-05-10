@@ -1,0 +1,3 @@
+nmenu
+echo "done"
+

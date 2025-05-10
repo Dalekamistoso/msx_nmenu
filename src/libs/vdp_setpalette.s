@@ -13,6 +13,6 @@ setPalette::
 		ld      a, #(16+128)
 		ei
 		out     (0x99), a
-		ld      bc, #0x209a		; out 32 bytes ($20) to port $9A
+		ld      bc, #0x1f9a		; out 32 bytes ($20) to port $9A
 		otir
 		ret

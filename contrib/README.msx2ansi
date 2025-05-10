@@ -1,0 +1,24 @@
+# About msx2ansi
+
+This document provides information about the `msx2ansi` software, which is a third-party package distributed with the `nmenu` project.
+
+As stated in the main `contrib/README` file, `msx2ansi` is not part of `nmenu`. It is developed and maintained by its own authors and is distributed under its own license terms.
+
+## Package: msx2ansi
+
+* Description: MSX2ANSI is a very, very, very fast ANSI COLOR Text Rendering engine for MSX2 and beyond.
+* Author(s): Oduvaldo Pavan Junior, based in ANSI-DRV.BIN from Tobias Keizer
+* Version: v1.7
+* Original Source: https://github.com/ducasp/MSX-Development/tree/master/SDCC/MSX2ANSI
+* License: "It is a SDCC library that can be freely used on any MSX2 or higher project. :)"
+
+## Documentation
+
+For detailed information on using `msx2ansi`, including its features, options, and any dependencies, please refer to the original documentation provided by its authors. This documentation might be found at:
+
+* The original source/homepage linked above.
+* Files within the `msx2ansi` subdirectory (e.g., `msx2ansi/README.MD`, `msx2ansi/docs/`).
+
+## Acknowledgement
+
+We extend our gratitude to the author(s) of `msx2ansi` for creating this software and for making it available to the wider MSX community.

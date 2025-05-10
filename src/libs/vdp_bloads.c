@@ -8,15 +8,15 @@
 #define LOAD_CHUNK_SIZE		8192
 
 
-bool bloads(const char* filename)
+void *bloads(const char* filename)
 {
-	bool ret = false;
+	void *palette = NULL;
 	FILEH fh;
 	BLOAD_HEADER header;
 
 	// Open file
 	if ((fh = dos2_fopen(filename, O_RDONLY)) >= ERR_FIRST) {
-		return false;
+		return 0;
 	}
 
 	// Read header
@@ -42,11 +42,15 @@ bool bloads(const char* filename)
 		address += sizeToRead;
 		size -= sizeToRead;
 	}
-	ret = true;
+	if (header.end >= 0xfa9f) {		// Check if palette is present
+		// Set palette pointer
+		buffer += (sizeToRead - (header.end-0xfa80));
+		palette = (void*)buffer;
+	}
 
 end_error:
 	free(LOAD_CHUNK_SIZE);
 end_function:
 	dos2_fclose(fh);
-	return ret;
+	return palette;
 }

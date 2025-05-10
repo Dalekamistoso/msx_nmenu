@@ -1,0 +1,26 @@
+# About lvgm / MSXgl
+
+The `lvgm` library is a part of the MSXgl libraries. It only contains the necessary functions to play files in LVGM format.
+
+This document provides information about the `MSXgl` software, which is a third-party package distributed with the `nmenu` project.
+
+As stated in the main `contrib/README` file, `lvgm / MSXgl` is not part of `nmenu`. It is developed and maintained by its own authors and is distributed under its own license terms.
+
+## Package: lvgm / MSXgl
+
+* Description: MSXgl is a Game Library wrote in C and targeting MSX computers.
+* Author(s): @aoineko-fr (https://github.com/aoineko-fr)
+* Version: v1.2.4
+* Original Source: https://github.com/aoineko-fr/MSXgl
+* License: CC-BY-SA-4.0 license
+
+## Documentation
+
+For detailed information on using `lvgm`, including its features, options, and any dependencies, please refer to the original documentation provided by its authors. This documentation might be found at:
+
+* The original source/homepage linked above.
+* Files within the `lvgm` subdirectory (e.g., `lvgm/README.MD`, `lvgm/docs/`).
+
+## Acknowledgement
+
+We extend our gratitude to the author(s) of `lvgm` for creating this software and for making it available to the wider MSX community.

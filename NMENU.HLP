@@ -1,0 +1,270 @@
+NMENU v1.0.0 - A Simple Menu Program for MSX-DOS
+-------------------------------------------------
+(c) 2025 Natalia Pujol Cremades
+info@abitwitches.com
+
+CONTENTS
+--------
+1. INTRODUCTION
+2. USAGE
+3. INI FILE FORMAT
+    3.1. GENERAL STRUCTURE
+    3.2. [Background] Section
+    3.3. [Settings] Section
+    3.4. [Options] Section
+4. COLOR CODES
+5. CONTROLS
+6. NOTES
+
+-------------------------------------------------
+1. INTRODUCTION
+-------------------------------------------------
+
+NMENU is a utility for MSX-DOS 2 (or higher) that allows you to create
+simple, navigable menus. These menus can be used to launch programs
+(.COM, .BAT), MSX ROM files (typically via a loader like SROM.COM),
+or even other NMENU INI files to create nested or multi-page menus.
+
+NMENU is highly customizable through an INI configuration file, which
+allows you to define background images (SC7 or ANSI), background colors,
+optional background music (LVGM format), and the appearance and behavior
+of each menu entry.
+
+This program is intended for MSX2 or higher systems to ensure
+compatibility with all graphical and system features used.
+
+-------------------------------------------------
+2. USAGE
+-------------------------------------------------
+
+To run NMENU, use the following command-line syntax:
+
+  NMENU <INI_FILE_PATH>
+
+Parameters:
+  <INI_FILE_PATH>
+    This is the path to the INI configuration file that NMENU should load.
+    The path can be relative or absolute.
+
+If no <INI_FILE_PATH> is provided, NMENU will attempt to load a file
+named "NMENU.INI" from the current directory.
+
+Example:
+  A:>NMENU MYMENU.INI
+  (Loads MYMENU.INI from the current directory)
+
+  A:>NMENU MENUS\GAMES.INI
+  (Loads GAMES.INI from the MENUS subdirectory)
+
+-------------------------------------------------
+3. INI FILE FORMAT
+-------------------------------------------------
+
+3.1. GENERAL STRUCTURE
+----------------------
+The INI file is a plain text file that NMENU reads to configure the menu.
+It is composed of:
+  - Sections: Declared with square brackets, e.g., [Background].
+  - Keys: Names for specific settings within a section, e.g., bg.color.
+  - Values: The data assigned to a key, e.g., bg.color=44.
+  - Comments: Lines starting with ';' or '#' are ignored and can be used
+    for notes.
+
+File paths used in the INI file (e.g., for images, music, executables)
+can be relative to the directory where the INI file itself is located,
+or they can be absolute paths. The maximum length for file paths is
+63 characters.
+
+3.2. [Background] Section
+-------------------------
+This section defines the overall visual background of the menu.
+
+Available keys:
+
+  bg.color
+    Description: Sets a solid background color for the entire screen.
+    Values: A numeric ANSI background color code (e.g., 40 for black,
+            44 for blue). See section 4. COLOR CODES for a list.
+    Example: bg.color=44
+
+  bg.file.sc7
+    Description: Specifies a SCREEN 7 (SC7) image file to be used as a
+                 graphical background. This image is loaded first.
+                 If the SC7 file contains embedded palette data (typically
+                 at address 0xFA80 within the file), this palette will be
+                 applied. This may override colors set by 'bg.color' or
+                 colors used in an ANSI background file.
+    Values: Path to the .SC7 file (e.g., BG\MYBG.SC7).
+    Example: bg.file.sc7=IMAGES\TITLE.SC7
+
+  bg.file.ansi
+    Description: Specifies an ANSI art file (.ANS) to be displayed as a
+                 text-based background. This is drawn after the SC7
+                 background (if one is specified and loaded).
+    Values: Path to the .ANS file (e.g., ART\LOGO.ANS).
+    Example: bg.file.ansi=BGART.ANS
+
+3.3. [Settings] Section
+-----------------------
+This section controls various operational settings for the menu, such as
+background music and the default appearance of menu options.
+
+Available keys:
+
+  music.lvgm
+    Description: Specifies a Light VGM (.LVM or .LVGM) music file to be
+                 played in the background while the menu is active.
+    Values: Path to the .LVM or .LVGM file.
+    Example: music.lvgm=SOUND\THEME.LVM
+
+  option.fr.color
+    Description: Sets the default foreground (text) color for menu options
+                 when they are not selected.
+    Values: A numeric ANSI foreground color code. See section 4. COLOR CODES.
+    Example: option.fr.color=37 (White)
+
+  option.bg.color
+    Description: Sets the default background color for menu options when
+                 they are not selected.
+    Values: A numeric ANSI background color code. See section 4. COLOR CODES.
+    Example: option.bg.color=40 (Black)
+
+  selected.fr.color
+    Description: Sets the foreground (text) color for the menu option that
+                 is currently highlighted/selected by the user.
+    Values: A numeric ANSI foreground color code. See section 4. COLOR CODES.
+    Example: selected.fr.color=1;33 (Bright Yellow)
+
+  selected.bg.color
+    Description: Sets the background color for the menu option that is
+                 currently highlighted/selected.
+    Values: A numeric ANSI background color code. See section 4. COLOR CODES.
+    Example: selected.bg.color=41 (Red)
+
+3.4. [Options] Section
+----------------------
+This section is where you define the actual menu entries that the user can
+select. NMENU supports up to 50 menu entries. Each entry is defined by a
+set of keys, and the definition for one entry ends when a "next" key is
+encountered, or when keys for a new entry index begin.
+
+Keys for each menu entry:
+
+  posx
+    Description: The X (column) position for the menu entry's text on the
+                 screen. Screen positions are 1-based.
+                 If specified, this value becomes the new default for
+                 subsequent entries that don't specify their own 'posx'.
+                 Setting 'posx', 'posy', or 'text' enables the menu entry.
+    Values: A number (e.g., 5).
+    Example: posx=10
+
+  posy
+    Description: The Y (row) position for the menu entry's text.
+                 If specified, this value becomes the new 'last_posy'.
+                 If not specified for an entry, 'posy' defaults to
+                 the next line.
+                 Initially (before any entry sets 'posy'), is 0.
+    Values: A number (e.g., 3).
+    Example: posy=5
+
+  text
+    Description: The text to be displayed for this menu entry.
+                 Maximum length is 80 characters.
+    Values: A string of text.
+    Example: text=Launch My Awesome Game!
+
+  exec
+    Description: The command or program to execute when this menu entry is
+                 selected and activated by the user. This can be:
+                 - A .COM executable file.
+                 - A .BAT batch file.
+                 - Another .INI file (to load a sub-menu with NMENU).
+                 - A command for a ROM loader (e.g., SROM MYGAME.ROM).
+                 The command is converted to uppercase before execution.
+    Values: A command string (max 63 chars).
+    Example: exec=SROM GAMES\PACMAN.ROM
+    Example: exec=SUBMENU.INI
+
+  next
+    Description: This key marks the end of the current menu entry's definition
+                 and tells NMENU to move to the next available menu entry slot.
+                 It does not take a value. If you want to skip an entry slot
+                 (leave it blank), you can just use "next" by itself.
+    Example: next
+
+-------------------------------------------------
+4. COLOR CODES
+-------------------------------------------------
+
+NMENU uses numeric ANSI escape codes in the INI file to define colors.
+These codes are strings that can represent standard colors or bright colors
+(by prefixing with "1;").
+
+Foreground (Text) Colors:
+  "30" : Black
+  "31" : Red
+  "32" : Green
+  "33" : Yellow
+  "34" : Blue
+  "35" : Purple (Magenta)
+  "36" : Cyan
+  "37" : White
+
+Bright Foreground (Text) Colors (use "1;" prefix):
+  "1;30" : Bright Black (Dark Gray)
+  "1;31" : Bright Red
+  "1;32" : Bright Green
+  "1;33" : Bright Yellow
+  "1;34" : Bright Blue
+  "1;35" : Bright Purple (Bright Magenta)
+  "1;36" : Bright Cyan
+  "1;37" : Bright White
+
+Background Colors:
+  "40" : Black
+  "41" : Red
+  "42" : Green
+  "43" : Yellow
+  "44" : Blue
+  "45" : Purple (Magenta)
+  "46" : Cyan
+  "47" : White
+
+!IMPORTANT NOTE on colors: If you use an SC7 background file (`bg.file.sc7`)
+that has an embedded palette, that palette will be loaded and may change the
+appearance of these ANSI colors.
+
+-------------------------------------------------
+5. CONTROLS
+-------------------------------------------------
+
+- UP ARROW:    Move selection to the previous enabled menu item.
+- DOWN ARROW:  Move selection to the next enabled menu item.
+- RETURN (ENTER): Execute the currently selected menu item.
+- SPACEBAR:       Execute the currently selected menu item.
+- SELECT: Execute selected item.
+- ESC:    Exit NMENU, returning to DOS.
+
+-------------------------------------------------
+6. NOTES
+-------------------------------------------------
+
+- NMENU requires MSX-DOS 2 or a higher version to run.
+- It is designed with MSX2 (or higher) capabilities in mind, particularly
+  for SCREEN 7 backgrounds and other system calls. MSX1 is not supported.
+- Ensure that any files referenced in the INI (images, music, programs)
+  exist at the specified paths.
+- If NMENU cannot find the specified INI file, or the default NMENU.INI,
+  it will display an error and exit.
+- When launching ROMs, you typically need a ROM loader utility (like SROM.COM,
+  EXECROM.COM, MGLOCM.COM etc.) specified in the 'exec' line along with the
+  ROM file.
+- If an 'exec' line points to another '.INI' file, NMENU will attempt to load
+  that file as a new menu. This is how you create sub-menus or navigate
+  between different menu configurations. The previous menu's state is not
+  saved; it's a fresh load.
+- If you exit NMENU via ESC or by launching an application, it will attempt 
+  to restore the original screen mode and system settings.
+
+End of NMENU.HLP

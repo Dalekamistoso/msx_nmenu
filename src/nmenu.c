@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "msx_const.h"
+#include "lvgm_player.h"
 #include "dos.h"
 #include "heap.h"
 #include "utils.h"
+#include "interrupt.h"
 #include "vdp.h"
 #include "msx2ansi.h"
 #include "ini.h"
@@ -29,7 +31,7 @@ static uint8_t originalBDRCLR;
 
 const char *SECTION_BACKGROUND = "Background";
 const char *SECTION_SETTINGS   = "Settings";
-const char *SECTION_LINES      = "Lines";
+const char *SECTION_OPTIONS    = "Options";
 
 const char initScreen[] = ANSI_COLOR(%s) ANSI_CLRSCR ANSI_CURSORHOME;
 const char entryPattern[] = ANSI_RESET ANSI_CURSORPOS(%u,%u)ANSI_COLOR(%s)ANSI_COLOR(%s)"%s";
@@ -44,6 +46,10 @@ void *heapBackup;
 
 // ========================================================
 // Function declarations
+
+bool SCC_Initialize();
+void MSXMusic_Initialize();
+void MSXAudio_Initialize();
 
 void restoreScreen();
 
@@ -71,6 +77,12 @@ static void checkPlatformSystem()
 	// Set abort exit routine
 	dos2_setAbortRoutine((void*)abortRoutine);
 
+	// Initialize interrupt hook & Music
+	interrupt_init();
+	SCC_Initialize();
+	MSXMusic_Initialize();
+	MSXAudio_Initialize();
+
 	// Backup original values
 	originalLINL40 = varLINL40;
 	originalSCRMOD = varSCRMOD;
@@ -80,6 +92,19 @@ static void checkPlatformSystem()
 	kanjiMode = (detectKanjiDriver() ? getKanjiMode() : 0);
 }
 
+void interrupt_hook(void)
+{
+		//Play music
+		LVGM_Decode();
+}
+
+void stopMusic()
+{
+	// Stop music
+	LVGM_Stop();
+	ASM_EI; ASM_HALT;
+	LVGM_Stop();
+}
 
 // ========================================================
 uint8_t last_posx = 0;
@@ -96,15 +121,18 @@ static int handler(const char* section, const char* name, const char* value)
 		strncpy(menu->bgColor, value, MAX_COLOR-1);
 	} else
 	if (MATCH(SECTION_BACKGROUND, "bg.file.ansi")) {
-		strcpy(menu->bgFileANSI, value);
+		strncpy(menu->bgFileANSI, value, MAX_FILE_PATH-1);
 	} else
 	if (MATCH(SECTION_BACKGROUND, "bg.file.sc7")) {
-		strcpy(menu->bgFileSC7, value);
+		strncpy(menu->bgFileSC7, value, MAX_FILE_PATH-1);
 	} else
-	if (MATCH(SECTION_SETTINGS, "menu.bg.color")) {
+	if (MATCH(SECTION_SETTINGS, "music.lvgm")) {
+		strncpy(menu->musicLVGM, value, MAX_FILE_PATH-1);
+	} else
+	if (MATCH(SECTION_SETTINGS, "option.bg.color")) {
 		strncpy(menu->menuBgColor, value, MAX_COLOR-1);
 	} else
-	if (MATCH(SECTION_SETTINGS, "menu.fr.color")) {
+	if (MATCH(SECTION_SETTINGS, "option.fr.color")) {
 		strncpy(menu->menuFgColor, value, MAX_COLOR-1);
 	} else
 	if (MATCH(SECTION_SETTINGS, "selected.bg.color")) {
@@ -113,7 +141,7 @@ static int handler(const char* section, const char* name, const char* value)
 	if (MATCH(SECTION_SETTINGS, "selected.fr.color")) {
 		strncpy(menu->selectedFgColor, value, MAX_COLOR-1);
 	} else
-	if (MATCH_SECTION(SECTION_LINES)) {
+	if (MATCH_SECTION(SECTION_OPTIONS)) {
 		if (index >= 0 && index < MAX_MENU_ENTRIES) {
 			MENU_ENTRY_t *entry = &menu->entries[index];
 			if (!entry->enabled) {
@@ -133,7 +161,7 @@ static int handler(const char* section, const char* name, const char* value)
 				strcpy(entry->text, value);
 			} else
 			if (MATCH_NAME("exec")) {
-				strcpy(entry->exec, dos2_strupr(value));
+				strncpy(entry->exec, dos2_strupr(value), MAX_FILE_PATH-1);
 			} else
 			if (MATCH_NAME("next")) {
 				index++;
@@ -164,21 +192,25 @@ void entry_print(MENU_ENTRY_t *entry, bool selected)
 
 void menu_show()
 {
+	void *palette = NULL;
+
 	copyToPage1();
 	waitVDPready();
-	setVPage(1);
 	ASM_EI; ASM_HALT;
+	setVPage(1);
+	clearSC7();
+	waitVDPready();
 
 	// Set backgrounds
 	csprintf(buff, initScreen, menu->bgColor);
 	AnsiPrint(buff);
 	if (menu->bgFileSC7[0] && dos2_fileexists(menu->bgFileSC7)) {
 		// Load background SC7 file
-		bloads(menu->bgFileSC7);
+		palette = bloads(menu->bgFileSC7);
 	}
 	if (menu->bgFileANSI[0] && dos2_fileexists(menu->bgFileANSI)) {
 		// Load background ANSI file
-		AnsiPrint(ANSI_RESET);
+		AnsiPrint(ANSI_RESET ANSI_CURSORHOME);
 		uint16_t size = dos2_filesize(menu->bgFileANSI);
 		char *ansiBuffer = malloc(size + 1);
 		loadFile(menu->bgFileANSI, ansiBuffer, size);
@@ -196,9 +228,31 @@ void menu_show()
 		entry++;
 	}
 
+	// Check if background music file exists
+	if (menu->musicLVGM[0]) {
+		if (dos2_fileexists(menu->musicLVGM)) {
+			// Load background music
+			uint16_t lvgmSize = dos2_filesize(menu->musicLVGM);
+			void *lvgm = malloc(lvgmSize);
+			loadFile(menu->musicLVGM, lvgm, lvgmSize);
+			LVGM_Play(lvgm, true);
+/*
+if (LVGM_IncludePSG()) AnsiPrint(ANSI_CURSORPOS(0,22)ANSI_COLOR(1;37;40)" LVGM_IncludePSG... "ANSI_RESET);
+if (LVGM_IncludeOPLL()) AnsiPrint(ANSI_CURSORPOS(0,23)ANSI_COLOR(1;37;40)" LVGM_IncludeOPLL... "ANSI_RESET);
+if (LVGM_IncludeOPL()) AnsiPrint(ANSI_CURSORPOS(0,24)ANSI_COLOR(1;37;40)" LVGM_IncludeOPL1... "ANSI_RESET);
+if (LVGM_IncludeSCC()) AnsiPrint(ANSI_CURSORPOS(0,25)ANSI_COLOR(1;37;40)" LVGM_IncludeSCC... "ANSI_RESET);
+*/
+		} else {
+			AnsiPrint(ANSI_CURSORPOS(0,26)ANSI_COLOR(1;33;41)" No music file found! "ANSI_RESET);
+		}
+	}
+
 	waitVDPready();
 	ASM_EI; ASM_HALT;
 	setVPage(0);
+	if (palette) {
+		setPalette(palette);
+	}
 }
 
 bool menu_init(char *iniFilename)
@@ -208,6 +262,9 @@ bool menu_init(char *iniFilename)
 	if (!dos2_fileexists(buff)) {
 		return false;
 	}
+
+	//Initialize music
+	stopMusic();
 
 	// Initialize heap to start value
 	heap_top = heapBackup;
@@ -234,6 +291,9 @@ bool menu_init(char *iniFilename)
 	// Start menu display
 	menu_show();
 
+	// Clear pressed keys
+	varPUTPNT = varGETPNT;
+	
 	return true;
 }
 
@@ -282,38 +342,41 @@ bool menu_loop()
 			entry_print(entry, true);
 		}
 		// Wait for a pressed key
-		key = getchar();
-		switch (key) {
-			case KEY_ESC:
-				end = true;
-				break;
-			case KEY_UP:
-				if (selected > 0) {
-					selected--;
-					while (selected > 0 && !menu->entries[selected].enabled) {
+		if (kbhit()) {
+			key = getchar();
+			switch (key) {
+				case KEY_ESC:
+					end = true;
+					break;
+				case KEY_UP:
+					if (selected > 0) {
 						selected--;
+						while (selected > 0 && !menu->entries[selected].enabled) {
+							selected--;
+						}
+						if (!menu->entries[selected].enabled) {
+							selected = lastSel;
+						}
 					}
-					if (!menu->entries[selected].enabled) {
-						selected = lastSel;
-					}
-				}
-				break;
-			case KEY_DOWN:
-				if (selected < MAX_MENU_ENTRIES - 1) {
-					selected++;
-					while (selected < MAX_MENU_ENTRIES - 1 && !menu->entries[selected].enabled) {
+					break;
+				case KEY_DOWN:
+					if (selected < MAX_MENU_ENTRIES - 1) {
 						selected++;
+						while (selected < MAX_MENU_ENTRIES - 1 && !menu->entries[selected].enabled) {
+							selected++;
+						}
+						if (!menu->entries[selected].enabled) {
+							selected = lastSel;
+						}
 					}
-					if (!menu->entries[selected].enabled) {
-						selected = lastSel;
-					}
-				}
-				break;
-			case KEY_RETURN:
-			case KEY_SELECT:
-			case KEY_SPACE:
-				launch_exec(entry);
-				break;
+					break;
+				case KEY_RETURN:
+				case KEY_SELECT:
+				case KEY_SPACE:
+					stopMusic();
+					launch_exec(entry);
+					break;
+			}
 		}
 	}
 
@@ -340,6 +403,10 @@ void restoreOriginalScreenMode() __naked
 
 void restoreScreen()
 {
+	// Restore interrupt hook
+	stopMusic();
+	interrupt_end();
+
 	// Clear & restore original screen parameters & colors
 	__asm
 		ld   ix, #DISSCR				; Disable screen
@@ -370,6 +437,38 @@ void restoreScreen()
 	dos2_setAbortRoutine((void*)0x0000);
 }
 
+void printHelp()
+{
+	// Print help message
+	cputs("## NMENU v"VERSIONAPP"\n"
+		  "## by NataliaPC 2025\n\n"
+		  "Usage:\n"
+		  "  nmenu <INI file>\n\n"
+		  "See NMENU.HLP file for more information.\n");
+	dos2_exit(1);
+}
+
+char *checkArguments(char **argv, int argc)
+{
+	// Check if argument is a INI file
+	if (argc && argv[0]) {
+		dos2_strupr(argv[0]);
+		char *dot = strrchr(argv[0], '.');
+		if (!dot || strcmp(dot, ".INI")) {
+			printHelp();
+		}
+	}
+	// Check if INI file exists
+	strcpy(buff, argc ? argv[0] : "NMENU.INI");
+	if (!dos2_fileexists(buff)) {
+		restoreScreen();
+		csprintf(buff, "%s file not found!!\n"VT_BEEP, buff);
+		cputs(buff);
+		printHelp();
+	}
+	return buff;
+}
+
 // ========================================================
 int main(char **argv, int argc) __sdcccall(0)
 {
@@ -379,21 +478,15 @@ int main(char **argv, int argc) __sdcccall(0)
 	if (heap_top < (void*)0x8000)
 		heap_top = (void*)0x8000;
 
-	//Platform system checks
-	checkPlatformSystem();
-
 	// Initialize generic string buffer
 	buff = malloc(200);
 	heapBackup = heap_top;
 
-	// Initialize screen
-	strcpy(buff, argc ? argv[0] : "nmenu.ini");
-	// Check if INI file exists
-	if (!dos2_fileexists(buff)) {
-		restoreScreen();
-		cputs("INI file not found!");
-		return 1;
-	}
+	// Check arguments
+	buff = checkArguments(argv, argc);
+
+	//Platform system checks
+	checkPlatformSystem();
 
 	// Initialize ANSI screen
 	AnsiInit();

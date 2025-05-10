@@ -16,12 +16,15 @@ ifeq ($(UNAME_S),Linux)
 endif
 
 ROOTDIR = .
+CONTRIBDIR = $(ROOTDIR)/contrib
 BINDIR = $(ROOTDIR)/bin
 SRCDIR = $(ROOTDIR)/src
 SRCLIB = $(SRCDIR)/libs
 LIBDIR = $(ROOTDIR)/libs
 INCDIR = $(ROOTDIR)/includes
+INCLVGMDIR = $(CONTRIBDIR)/lvgm/includes
 RESDIR = $(ROOTDIR)/res
+EXAMPLEDIR = $(RESDIR)/examples
 OBJDIR = $(ROOTDIR)/obj
 DSKDIR = $(ROOTDIR)/dsk
 EXTERNALS = $(ROOTDIR)/externals
@@ -37,7 +40,7 @@ JAVA = java
 DSKTOOL = $(BINDIR)/dsktool
 OPENMSX = openmsx
 
-EMUEXT = -ext debugdevice
+EMUEXT = -ext debugdevice -ext scc -ext audio
 EMUEXT1 = $(EMUEXT) -ext Mitsubishi_ML-30DC_ML-30FD
 EMUEXT2 = $(EMUEXT) -ext msxdos2
 EMUEXT2P = $(EMUEXT) -ext msxdos2 -ext ram512k
@@ -53,12 +56,13 @@ WRFLAGS = --disable-warning 196 --disable-warning 84
 CCFLAGS = --code-loc 0x0180 --data-loc 0 -mz80 --no-std-crt0 --out-fmt-ihx $(OPFLAGS) $(WRFLAGS) $(DEFINES) $(DEBUG)
 
 
-LIBS = dos.lib utils.lib vdp.lib msx2ansi.lib
+LIBS = dos.lib utils.lib vdp.lib msx2ansi.lib lvgm.lib
 REL_LIBS = 	$(addprefix $(LIBDIR)/, $(LIBS)) \
 			$(addprefix $(OBJDIR)/, \
 				crt0msx_msxdos_advanced.rel \
 				heap.rel \
 				ini_parse.rel \
+				interrupt.rel \
 				nmenu.rel \
 				debug.rel \
 			)
@@ -98,12 +102,12 @@ $(OBJDIR)/%.rel: $(SRCDIR)/%.s
 $(OBJDIR)/%.rel: $(SRCDIR)/%.c
 	@echo "$(COL_BLUE)#### CC $@$(COL_RESET)"
 	@$(DIR_GUARD)
-	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -c -o $@ $^ ;
+	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -I$(INCLVGMDIR) -c -o $@ $^ ;
 
 $(OBJDIR)/%.c.rel: $(SRCLIB)/%.c
 	@echo "$(COL_BLUE)#### CC $@$(COL_RESET)"
 	@$(DIR_GUARD)
-	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -c -o $@ $^ ;
+	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -I$(INCLVGMDIR) -c -o $@ $^ ;
 
 $(OBJDIR)/%.s.rel: $(SRCLIB)/%.s
 	@echo "$(COL_BLUE)#### ASM $@$(COL_RESET)"
@@ -113,18 +117,19 @@ $(OBJDIR)/%.s.rel: $(SRCLIB)/%.s
 $(OBJDIR)/$(PROGRAM).rel: $(SRCDIR)/$(PROGRAM).c $(wildcard $(INCDIR)/*.h)
 	@echo "$(COL_BLUE)#### CC $@$(COL_RESET)"
 	@$(DIR_GUARD)
-	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -c -o $@ $< ;
+	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -I$(INCLVGMDIR) -c -o $@ $< ;
 
 $(OBJDIR)/$(PROGRAM).com: $(REL_LIBS) $(wildcard $(INCDIR)/*.h)
 	@echo "$(COL_YELLOW)######## Compiling $@$(COL_RESET)"
 	@$(DIR_GUARD)
-	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -L$(LIBDIR) $(REL_LIBS) -o $(subst .com,.ihx,$@) ;
+	@$(CC) $(CCFLAGS) $(FULLOPT) -I$(INCDIR) -I$(INCLVGMDIR) -L$(LIBDIR) $(REL_LIBS) -o $(subst .com,.ihx,$@) ;
 	@$(HEX2BIN) -e com $(subst .com,.ihx,$@)
 
 
 release: $(OBJDIR)/$(PROGRAM).com
 	@echo "$(COL_WHITE)**** Copying $^ file to $(DSKDIR)$(COL_RESET)"
 	@cp $(OBJDIR)/$(PROGRAM).com $(DSKDIR)
+	@cp $(OBJDIR)/$(PROGRAM).com $(EXAMPLEDIR)
 
 $(DSKNAME): all
 	@echo "$(COL_WHITE)**** $(DSKNAME) generating ****$(COL_RESET)"
