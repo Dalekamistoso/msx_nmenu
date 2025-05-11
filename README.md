@@ -84,15 +84,21 @@ For a detailed explanation of the INI file format, color codes, and advanced pos
 
 ```ini
 [Background]
-bg.color=44            ; Blue background
-bg.file.sc7=bg3.sc7    ; SC7 image
+# Blue background
+bg.color=44
+# SC7 image
+bg.file.sc7=bg3.sc7
 
 [Settings]
 music.lvgm=lvgm\opll_unde.lvm
-option.fr.color=30     ; Black text
-option.bg.color=42     ; Green background
-selected.fr.color=1;37 ; Bright White text (selected)
-selected.bg.color=44   ; Blue background (selected)
+# Black text
+option.fr.color=30
+# Green background
+option.bg.color=42
+# Bright White text (selected)
+selected.fr.color=1;37
+# Blue background (selected)
+selected.bg.color=44
 
 [Options]
 posx=5
