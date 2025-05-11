@@ -313,6 +313,9 @@ void launch_exec(MENU_ENTRY_t *entry)
 		} else {
 			// Restore screen
 			AnsiPrint(ANSI_CURSORON);
+			AnsiEndBuffer();
+			AnsiFinish();
+			waitVDPready();
 			restoreScreen();
 			// Execute command
 			execv(entry->exec);
@@ -410,8 +413,6 @@ void restoreScreen()
 	// Clear & restore original screen parameters & colors
 	__asm
 		ld   ix, #DISSCR				; Disable screen
-		BIOSCALL
-		ld   ix, #INIFNK				; Restore function keys
 		BIOSCALL
 	__endasm;
 
