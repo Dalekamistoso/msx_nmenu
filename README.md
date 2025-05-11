@@ -104,7 +104,7 @@ selected.bg.color=44
 posx=5
 posy=3
 text=Launch Game Alpha
-exec=srom roms\alpha.rom
+exec=srom /Q roms\alpha.rom
 next
 
 text=Run Utility
