@@ -89,7 +89,7 @@ static void checkPlatformSystem()
 	originalFORCLR = varFORCLR;
 	originalBAKCLR = varBAKCLR;
 	originalBDRCLR = varBDRCLR;
-	kanjiMode = (detectKanjiDriver() ? getKanjiMode() : 0);
+	kanjiMode = (detectKanjiDriver() ? getKanjiMode() : MODE_ANK);
 }
 
 void interrupt_hook(void)
@@ -490,6 +490,9 @@ int main(char **argv, int argc) __sdcccall(0)
 	checkPlatformSystem();
 
 	// Initialize ANSI screen
+	if (kanjiMode != MODE_ANK) {
+		setKanjiMode(MODE_ANK);
+	}
 	AnsiInit();
 	AnsiStartBuffer();
 	AnsiPrint(ANSI_CURSOROFF);

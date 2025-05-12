@@ -52,7 +52,7 @@ static void launcher() __naked
 		ld   c, #CLOSE					; DOS Call: CLOSE FILE [FCB]
 		DOSCALL
 
-		ld   sp, (HIMEM)				; Set HIMEM to memory top
+		ld   sp, (HIMEM)				; Set stack to HIMEM (memory top)
 		jp   0x0100						; Execute the program
 
 	__endasm;
