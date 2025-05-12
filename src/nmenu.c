@@ -317,6 +317,7 @@ void launch_exec(MENU_ENTRY_t *entry)
 			AnsiFinish();
 			waitVDPready();
 			restoreScreen();
+			resetPalette();
 			// Execute command
 			execv(entry->exec);
 		}

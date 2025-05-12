@@ -103,6 +103,7 @@ typedef struct {
 //void enableInterlacedLines();
 //void disableInterlacedLines();
 
+void resetPalette();
 void setPalette(char *paletteAddress) __sdcccall(1);
 void setColorPal(uint8_t colIndex, uint16_t grb) __sdcccall(1);	// grb bitfield: 00000GGG.0RRR0BBB
 
