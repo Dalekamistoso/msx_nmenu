@@ -24,7 +24,7 @@ LIBDIR = $(ROOTDIR)/libs
 INCDIR = $(ROOTDIR)/includes
 INCLVGMDIR = $(CONTRIBDIR)/lvgm/includes
 RESDIR = $(ROOTDIR)/res
-EXAMPLEDIR = $(RESDIR)/examples
+EXAMPLEDIR = $(RESDIR)/example
 OBJDIR = $(ROOTDIR)/obj
 DSKDIR = $(ROOTDIR)/dsk
 EXTERNALS = $(ROOTDIR)/externals
@@ -49,7 +49,7 @@ EMUSCRIPTS = -script $(ROOTDIR)/emulation/boot.tcl
 
 DEFINES := -D_DOSLIB_
 #DEBUG := -D_DEBUG_
-#FULLOPT :=  --max-allocs-per-node 200000
+FULLOPT :=  --max-allocs-per-node 200000
 LDFLAGS = -rc
 OPFLAGS = --std-sdcc2x --less-pedantic --opt-code-size -pragma-define:CRT_ENABLE_STDIO=0
 WRFLAGS = --disable-warning 196 --disable-warning 84

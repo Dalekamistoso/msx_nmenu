@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define VERSIONAPP			"1.0.0"
+#define VERSIONAPP			"1.0.1"
 
 #define MAX_FILE_PATH		64
 #define MAX_MENU_ENTRIES	50

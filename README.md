@@ -90,7 +90,7 @@ bg.color=44
 bg.file.sc7=bg3.sc7
 
 [Settings]
-music.lvgm=lvgm\opll_unde.lvm
+music.lvgm=lvgm\opll_und.lvm
 # Black text
 option.fr.color=30
 # Green background
