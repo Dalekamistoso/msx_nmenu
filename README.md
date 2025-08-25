@@ -162,6 +162,6 @@ For a comprehensive guide to NMENU, including all INI file options, color codes,
 
 Please give us a star on [GitHub](https://github.com/nataliapc/msx_nmenu) if you like this project.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=nataliapc/msx_nmenu&type=Date)](https://www.star-history.com/#nataliapc/msx_nmenu&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=nataliapc/msx_nmenu&type=Date&theme=dark)](https://www.star-history.com/#nataliapc/msx_nmenu&Date)
 
 ---
