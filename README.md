@@ -18,6 +18,7 @@ NMENU is a utility for MSX-DOS 2 (or higher) that allows you to create simple, n
 - [Building from Source](#building-from-source)
 - [Third-Party Libraries](#third-party-libraries)
 - [Detailed Help](#detailed-help)
+- 🌟 [More stars!](#more-stars) 🌟
 
 ## Introduction
 
@@ -156,3 +157,11 @@ NMENU utilizes the following third-party libraries, which are included in the `c
 ## Detailed Help
 
 For a comprehensive guide to NMENU, including all INI file options, color codes, and operational notes, please consult the [NMENU.HLP](NMENU.HLP) file included in this repository.
+
+## More stars!
+
+Please give us a star on [GitHub](https://github.com/nataliapc/msx_nmenu) if you like this project.
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nataliapc/msx_nmenu&type=Date)](https://www.star-history.com/#nataliapc/msx_nmenu&Date)
+
+---
